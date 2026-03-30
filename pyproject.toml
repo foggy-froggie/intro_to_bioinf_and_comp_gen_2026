@@ -7,6 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "biopython>=1.86",
     "biotite>=1.6.0",
+    "geoparse>=2.0.4",
     "ipykernel>=7.2.0",
     "matplotlib>=3.10.8",
     "mdtraj>=1.11.1.post1",
