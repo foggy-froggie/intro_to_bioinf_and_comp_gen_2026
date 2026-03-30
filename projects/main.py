@@ -1,5 +1,13 @@
 # %%
+import numpy as np
+
 import pandas as pd
+
+import matplotlib.pyplot as plt
+
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 
 from Bio.Blast import NCBIWWW, NCBIXML
 from Bio import pairwise2
@@ -44,3 +52,32 @@ aligner.extend_gap_score = -0.5
 for sbjct in df.loc[:, "sbjct"].iloc[:5]:
     alignments = aligner.align(prot, sbjct)
     print(alignments[0])
+
+# %%
+n = min(df.shape[0], 100)
+score_matrix = np.zeros((n, n))
+proteins = df["sbjct"][:n]
+
+# %%
+for i, a in enumerate(proteins):
+    for j, b in enumerate(proteins[i:], start=i):
+        score = aligner.score(a, b)
+        score_matrix[i, j] = score
+        score_matrix[j, i] = score
+
+# %%
+score_matrix /= np.linalg.norm(score_matrix, axis=0)
+
+# %%
+reduced = PCA(n_components=2).fit_transform(score_matrix)
+
+# %%
+kmeans = KMeans(n_clusters=3)
+labels = kmeans.fit_predict(reduced)
+score = silhouette_score(reduced, labels)
+print(score)
+
+# %%
+# Task 6 - plot after dimensionality reduction & clustering
+plt.scatter(reduced[:,0], reduced[:,1], c=labels)
+plt.show()
