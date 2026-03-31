@@ -74,10 +74,24 @@ score_matrix /= np.linalg.norm(score_matrix, axis=0)
 reduced = PCA(n_components=2).fit_transform(score_matrix)
 
 # %%
-kmeans = KMeans(n_clusters=3)
+k_list = np.arange(2, 10)
+cluster_scores = np.zeros((10, k_list.shape[0]))
+for i in range(10):
+    for j, k in enumerate(k_list):
+        kmeans = KMeans(n_clusters=k)
+        labels = kmeans.fit_predict(reduced)
+        score = silhouette_score(reduced, labels)
+        cluster_scores[i, j] = score
+
+plt.plot(np.mean(cluster_scores, axis=0))
+plt.xticks(np.arange(k_list.shape[0]), k_list);
+
+# %%
+k = 3
+kmeans = KMeans(n_clusters=k)
 labels = kmeans.fit_predict(reduced)
 score = silhouette_score(reduced, labels)
-print(score)
+k, score
 
 # %%
 # Task 6 - plot after dimensionality reduction & clustering
