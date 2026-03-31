@@ -37,6 +37,9 @@ df = pd.DataFrame(
 df.iloc[:10, :].loc[:, ["identity", "e-value", "description"]]
 
 # %%
+print(*df["description"][:10], sep="\n")
+
+# %%
 matrix  = substitution_matrices.load("BLOSUM62")
 
 aligner = PairwiseAligner()
