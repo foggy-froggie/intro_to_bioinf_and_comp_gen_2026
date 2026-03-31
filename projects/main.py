@@ -10,7 +10,6 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 from Bio.Blast import NCBIWWW, NCBIXML
-from Bio import pairwise2
 from Bio.Align import PairwiseAligner, substitution_matrices
 
 # %%
