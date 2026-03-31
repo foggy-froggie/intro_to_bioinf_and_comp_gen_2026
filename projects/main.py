@@ -216,7 +216,7 @@ aligner.extend_gap_score = -0.5
 
 # %%
 # Task 5 - top 5 alignments
-for sbjct in df.loc[:, "sbjct"].iloc[:5]:
+for sbjct in df.loc[:, "sbjct"].iloc[:5].str.replace("-", ""):
     alignments = aligner.align(prot, sbjct)
     print(alignments[0])
 
