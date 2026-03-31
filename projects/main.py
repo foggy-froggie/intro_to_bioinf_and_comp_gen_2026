@@ -53,7 +53,7 @@ for sbjct in df.loc[:, "sbjct"].iloc[:5]:
     print(alignments[0])
 
 # %%
-n = min(df.shape[0], 100)
+n = min(df.shape[0], 100) + 1
 score_matrix = np.zeros((n, n))
 proteins = [prot, *df["sbjct"][:n].str.replace("-", "")]
 
@@ -78,5 +78,7 @@ print(score)
 
 # %%
 # Task 6 - plot after dimensionality reduction & clustering
-plt.scatter(reduced[:,0], reduced[:,1], c=labels)
+plt.scatter(reduced[1:,0], reduced[1:,1], c=labels[1:], marker="x")
+plt.scatter(reduced[:1,0], reduced[:1,1], c="None", edgecolors="red", marker="o", s=200)
+
 plt.show()
