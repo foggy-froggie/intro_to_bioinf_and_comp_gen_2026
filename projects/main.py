@@ -177,12 +177,29 @@ protein_fasta["DSC3_protein_translated"] = str(best_prot_1)
 protein_fasta["CGN_protein_translated"] = str(best_prot_2)
 
 protein_fasta.write("translated_proteins.fasta")
-# %%
-prot = str(best_prot_1)
 
 # %%
-result_handle = NCBIWWW.qblast('blastp', 'swissprot', prot)
-blast_record = NCBIXML.read(result_handle)
+prot_1 = str(best_prot_1)
+prot_2 = str(best_prot_2)
+
+# %%
+def get_blast_hits(prot: str):
+    result_handle = NCBIWWW.qblast('blastp', 'swissprot', prot)
+    return NCBIXML.read(result_handle)
+
+# %%
+blast_1 = get_blast_hits(prot_1)
+
+# %%
+blast_2 = get_blast_hits(prot_2)
+
+# %%
+prot = prot_1
+blast_record = blast_1
+
+# %%
+prot = prot_2
+blast_record = blast_2
 
 # %%
 df = pd.DataFrame(
