@@ -5,6 +5,8 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 
+import GEOparse
+
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
@@ -13,6 +15,149 @@ from Bio.Blast import NCBIWWW, NCBIXML
 from Bio import pairwise2
 from Bio.Align import PairwiseAligner, substitution_matrices
 
+from biotite.sequence import NucleotideSequence, ProteinSequence, CodonTable
+import biotite.sequence.io.fasta as fasta
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+# %%
+# Task 1 - Data Retrieval
+gse = GEOparse.get_GEO(geo="GSE10245", destdir="./")
+
+# %%
+# Non-small cell lung cancer (NSCLC) can be classified into the major subtypes 
+# adenocarcinoma (AC) and squamous cell carcinoma (SCC) subtypes. 
+# This file has global gene expression profiling of 58 human high grade NSCLC specimens.
+
+#%%
+data = gse.pivot_samples('VALUE')
+
+adeno_samples = []
+squamous_samples = []
+
+for gsm_id, gsm in gse.gsms.items():
+    status = gsm.metadata['characteristics_ch1'][0]
+    if 'adenocarcinoma' in status:
+        adeno_samples.append(gsm_id)
+    elif 'squamous cell carcinoma' in status:
+        squamous_samples.append(gsm_id)
+
+# %%
+adeno_mean = data[adeno_samples].mean(axis=1)
+squamous_mean = data[squamous_samples].mean(axis=1)
+adeno_sd = data[adeno_samples].std(axis=1)
+squamous_sd = data[squamous_samples].std(axis=1)
+
+# %%
+results = pd.DataFrame({
+    'adeno_mean': adeno_mean,
+    'squamous_mean': squamous_mean,
+    'adeno_sd': adeno_sd,
+    'squamous_sd': squamous_sd
+})
+results
+
+results['score'] = (adeno_mean - squamous_mean) / (adeno_sd + squamous_sd)
+top_up = results.sort_values('score', ascending=False).head(1)
+top_down = results.sort_values('score', ascending=True).head(1)
+
+# %%
+gene_1_id = top_down.reset_index().ID_REF[0]
+gene_2_id = top_up.reset_index().ID_REF[0]
+
+# %%
+genes_to_plot = [gene_1_id, gene_2_id]
+plot_df = data.loc[genes_to_plot].T.reset_index()
+
+# %%
+plot_df['status'] = np.select([plot_df['name'].isin(adeno_samples),plot_df['name'].isin(squamous_samples)], ['A','S'], default='None')
+
+# %%
+plt.figure(figsize=(10, 6))
+sns.boxplot(data=plot_df, x='status', y=gene_1_id)
+plt.title("Gene Expression Comparison: Adeno vs Squamous")
+plt.show()
+
+# %%
+plt.figure(figsize=(10, 6))
+sns.boxplot(data=plot_df, x='status', y=gene_2_id)
+plt.title("Gene Expression Comparison: Adeno vs Squamous")
+plt.show()
+
+# %%
+gpl = gse.gpls["GPL570"].table
+gene_1_symbol = gpl[gpl['ID'] == gene_1_id].reset_index(drop = True)["Gene Symbol"][0]
+gene_2_symbol = gpl[gpl['ID'] == gene_2_id].reset_index(drop = True)["Gene Symbol"][0]
+
+# %%
+# Gene 1 Symbol: DSC3
+# Gene 2 Symbol: CGN
+
+#%%
+# Task 2 - Sequence Extraction
+# Downladed coding seqences as fasta files form:
+# DSC3: https://www.ncbi.nlm.nih.gov/datasets/gene/1825/
+# CGN: https://www.ncbi.nlm.nih.gov/datasets/gene/57530/
+
+# %%
+gene_1_file = fasta.FastaFile.read("./DSC3.fasta")
+gene_2_file = fasta.FastaFile.read("./CGN.fasta")
+
+gene_1_seq = list(fasta.get_sequences(gene_1_file).values())[0]
+gene_2_seq = list(fasta.get_sequences(gene_2_file).values())[0]
+
+# %%
+# Task 3 - Translation to Protein
+codon_table = {
+    'A': ['GCT','GCC','GCA','GCG'],
+    'C': ['TGT','TGC'],
+    'D': ['GAT','GAC'],
+    'E': ['GAA','GAG'],
+    'F': ['TTT','TTC'],
+    'G': ['GGT','GGC','GGA','GGG'],
+    'H': ['CAT','CAC'],
+    'I': ['ATT','ATC','ATA'],
+    'K': ['AAA','AAG'],
+    'L': ['TTA','TTG','CTT','CTC','CTA','CTG'],
+    'M': ['ATG'],
+    'N': ['AAT','AAC'],
+    'P': ['CCT','CCC','CCA','CCG'],
+    'Q': ['CAA','CAG'],
+    'R': ['CGT','CGC','CGA','CGG','AGA','AGG'],
+    'S': ['TCT','TCC','TCA','TCG','AGT','AGC'],
+    'T': ['ACT','ACC','ACA','ACG'],
+    'V': ['GTT','GTC','GTA','GTG'],
+    'W': ['TGG'],
+    'Y': ['TAT','TAC'],
+    '*': ['TAA','TAG','TGA']
+}
+
+reverse_codon_table = {i: k for k, v in codon_table.items() for i in v}
+new_codon_table = CodonTable(
+    codon_dict = reverse_codon_table,
+    starts=['ATG']
+)
+
+gene_1_prot_list = gene_1_seq.translate(codon_table=new_codon_table, met_start=False)
+gene_2_prot_list = gene_2_seq.translate(codon_table=new_codon_table, met_start=False)
+
+# Selecting the longest ORF for each gene
+best_prot_1 = max(gene_1_prot_list, key=len)
+best_prot_2 = max(gene_2_prot_list, key=len)
+
+protein_fasta = fasta.FastaFile()
+
+protein_fasta["DSC3_protein_translated"] = str(best_prot_1)
+protein_fasta["CGN_protein_translated"] = str(best_prot_2)
+
+protein_fasta.write("translated_proteins.fasta")
+
+# %%
+with open("DSC3_prot.fasta", "w") as f:
+    f.write(gene_1_prot)
+
+with open("CGN_prot.fasta", "w") as f:
+    f.write(gene_2_prot)
 # %%
 prot = "MHTRLKYSILQQTPRSPGLFSVHPSTGVITTVSHYLDREVVDKYSLIMKVQDMDGQFFGLIGTSTCIITVTDSNDNAPTFRQNAYEAFVEENAFNVEILRIPIEDKDLINTANWRVNFTILKGNENGHFKISTDKETNEGVLSVVKPLNYEENRQVNLEIGVNNEAPFARDIPRVTALNRALVTVHVRDLDEGPECTPAAQYVRIKENLAVGSKINGYKAYDPENRNGNGLRYKKLHDPKGWITIDEISGSIITSKILDREVETPKNELYNITVLAIDKDDRSCTGTLAVNIEDVNDNPPEILQEYVVICKPKMGYTDILAVDPDEPVHGAPFYFSLPNTSPEISRLWSLTKVNDTAARLSYQKNAGFQEYTIPITVKDRAGQAATKLLRVNLCECTHPTQCRATSRSTGVILGKWAILAILLGIALLFSVLLTLVCGVFGATKGKRFPEDLAQQNLIISNTEAPGDDRVCSANGFMTQTTNNSSQGFCGTMGSGMKNGGQETIEMMKGGNQTLESCRGAGHHHTLDSCRGGHTEVDNCRYTYSEWHSFTQPRLGEKLHRCNQNEDRMPSQDYVLTYNYEGRGSPAGSVGCCSEKQEEDGLDFLNNLEPKFITLAEACTKR"
 
