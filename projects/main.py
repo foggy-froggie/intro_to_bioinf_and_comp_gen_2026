@@ -24,13 +24,27 @@ import matplotlib.pyplot as plt
 gse = GEOparse.get_GEO(geo="GSE10245", destdir="./")
 
 # %% [markdown]
-# Non-small cell lung cancer (NSCLC) can be classified into the major subtypes 
-# adenocarcinoma (AC) and squamous cell carcinoma (SCC) subtypes. 
-# This file has global gene expression profiling of 58 human high grade NSCLC specimens.
-
-#%%
+# Accession: GSE10245
+#
+# Organism: Homo sapiens (Human)
+#
+# Condition: Adenocarcinoma vs. Squamous Cell Carcinoma
+#
+# The dataset compares two major histological subtypes: Adenocarcinoma and Squamous Cell Carcinoma. The data contains 54,675 features normalized via the gcRMA method, which produces values on a log2​ scale.
+# %%
 data = gse.pivot_samples('VALUE')
 
+print(f"Features: {data.shape[0]}")
+print(f"Samples: {data.shape[1]}")
+print(f"Global Mean: {data.values.mean()}")
+print(f"Global Std Dev: {data.values.std()}")
+print(f"Min: {data.values.min()}")
+print(f"Max: {data.values.max()}")
+
+# %% [markdown]
+# The dataset consists of a matrix of 58 samples. The global expression values have a mean of approx. 4.73 and a range of approx. 0.64 to 15.62. The standard deviation of the dataset is approx. 2.87.
+ 
+# %%
 adeno_samples = []
 squamous_samples = []
 
@@ -40,6 +54,9 @@ for gsm_id, gsm in gse.gsms.items():
         adeno_samples.append(gsm_id)
     elif 'squamous cell carcinoma' in status:
         squamous_samples.append(gsm_id)
+
+# %% [markdown]
+# Looking for genes with a high mean difference and high consistentancy within the two cancer subtypes
 
 # %%
 adeno_mean = data[adeno_samples].mean(axis=1)
@@ -77,12 +94,17 @@ sns.boxplot(data=plot_df, x='status', y=gene_1_id)
 plt.title("Gene Expression Comparison: Adeno vs Squamous")
 plt.show()
 
+# %% [markdown]
+#The Adeno group shows minimal expression with very low variance, while the Squamous group shows significantly higher expression. Considering that the gene expression is given on log2​ scale, the mean difference approximately 20 times higher in expression for Squamous cells.
+
 # %%
 plt.figure(figsize=(10, 6))
 sns.boxplot(data=plot_df, x='status', y=gene_2_id)
 plt.title("Gene Expression Comparison: Adeno vs Squamous")
 plt.show()
 
+# %% [markdown]
+# In this case expression levels in the Squamos group are significantly lower compared to the Adeno group. Although the Squamous group has higher internal variation, the "boxes" of the two distributions do not overlap indicating a siginicant differnce in expression.
 # %%
 gpl = gse.gpls["GPL570"].table
 gene_1_symbol = gpl[gpl['ID'] == gene_1_id].reset_index(drop = True)["Gene Symbol"][0]
@@ -90,9 +112,13 @@ gene_2_symbol = gpl[gpl['ID'] == gene_2_id].reset_index(drop = True)["Gene Symbo
 
 # %% [markdown]
 # Gene 1 Symbol: DSC3
+#
 # Gene 2 Symbol: CGN
-
-#%% [markdown]
+#
+# DSC3, known as Desmocollin 3 is a critical cell-to-cell adhesion
+#
+# CGN, known as Cingulin is a tight-junction protein involved in regulating the epithelial barrier
+#%%
 # Task 2 - Sequence Extraction
 # Downladed coding seqences as fasta files form:
 # DSC3: https://www.ncbi.nlm.nih.gov/datasets/gene/1825/
@@ -137,8 +163,8 @@ new_codon_table = CodonTable(
     starts=['ATG']
 )
 
-gene_1_prot_list = gene_1_seq.translate(codon_table=new_codon_table, met_start=False)[0]
-gene_2_prot_list = gene_2_seq.translate(codon_table=new_codon_table, met_start=False)[0]
+gene_1_prot_list = gene_1_seq.translate(codon_table=new_codon_table, met_start=False)
+gene_2_prot_list = gene_2_seq.translate(codon_table=new_codon_table, met_start=False)
 
 # Selecting the longest ORF for each gene
 best_prot_1 = max(gene_1_prot_list, key=len)
@@ -150,7 +176,6 @@ protein_fasta["DSC3_protein_translated"] = str(best_prot_1)
 protein_fasta["CGN_protein_translated"] = str(best_prot_2)
 
 protein_fasta.write("translated_proteins.fasta")
-
 # %%
 prot = "MHTRLKYSILQQTPRSPGLFSVHPSTGVITTVSHYLDREVVDKYSLIMKVQDMDGQFFGLIGTSTCIITVTDSNDNAPTFRQNAYEAFVEENAFNVEILRIPIEDKDLINTANWRVNFTILKGNENGHFKISTDKETNEGVLSVVKPLNYEENRQVNLEIGVNNEAPFARDIPRVTALNRALVTVHVRDLDEGPECTPAAQYVRIKENLAVGSKINGYKAYDPENRNGNGLRYKKLHDPKGWITIDEISGSIITSKILDREVETPKNELYNITVLAIDKDDRSCTGTLAVNIEDVNDNPPEILQEYVVICKPKMGYTDILAVDPDEPVHGAPFYFSLPNTSPEISRLWSLTKVNDTAARLSYQKNAGFQEYTIPITVKDRAGQAATKLLRVNLCECTHPTQCRATSRSTGVILGKWAILAILLGIALLFSVLLTLVCGVFGATKGKRFPEDLAQQNLIISNTEAPGDDRVCSANGFMTQTTNNSSQGFCGTMGSGMKNGGQETIEMMKGGNQTLESCRGAGHHHTLDSCRGGHTEVDNCRYTYSEWHSFTQPRLGEKLHRCNQNEDRMPSQDYVLTYNYEGRGSPAGSVGCCSEKQEEDGLDFLNNLEPKFITLAEACTKR"
 
