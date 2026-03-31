@@ -5,6 +5,8 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 
+import seaborn as sns
+
 import GEOparse
 
 from sklearn.decomposition import PCA
@@ -17,8 +19,7 @@ from Bio.Align import PairwiseAligner, substitution_matrices
 from biotite.sequence import NucleotideSequence, ProteinSequence, CodonTable
 import biotite.sequence.io.fasta as fasta
 
-import seaborn as sns
-import matplotlib.pyplot as plt
+from umap import UMAP
 # %%
 # Task 1 - Data Retrieval
 gse = GEOparse.get_GEO(geo="GSE10245", destdir="./")
@@ -237,6 +238,9 @@ score_matrix /= np.linalg.norm(score_matrix, axis=0)
 
 # %%
 reduced = PCA(n_components=2).fit_transform(score_matrix)
+
+# %%
+reduced = UMAP().fit_transform(score_matrix)
 
 # %%
 k_list = np.arange(2, 10)
