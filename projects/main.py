@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 # Task 1 - Data Retrieval
 gse = GEOparse.get_GEO(geo="GSE10245", destdir="./")
 
-# %%
+# %% [markdown]
 # Non-small cell lung cancer (NSCLC) can be classified into the major subtypes 
 # adenocarcinoma (AC) and squamous cell carcinoma (SCC) subtypes. 
 # This file has global gene expression profiling of 58 human high grade NSCLC specimens.
@@ -88,11 +88,11 @@ gpl = gse.gpls["GPL570"].table
 gene_1_symbol = gpl[gpl['ID'] == gene_1_id].reset_index(drop = True)["Gene Symbol"][0]
 gene_2_symbol = gpl[gpl['ID'] == gene_2_id].reset_index(drop = True)["Gene Symbol"][0]
 
-# %%
+# %% [markdown]
 # Gene 1 Symbol: DSC3
 # Gene 2 Symbol: CGN
 
-#%%
+#%% [markdown]
 # Task 2 - Sequence Extraction
 # Downladed coding seqences as fasta files form:
 # DSC3: https://www.ncbi.nlm.nih.gov/datasets/gene/1825/
