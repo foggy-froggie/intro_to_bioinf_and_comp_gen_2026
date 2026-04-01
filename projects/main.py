@@ -241,7 +241,7 @@ for sbjct in df.loc[:, "sbjct"].iloc[:5].str.replace("-", ""):
 n = min(df.shape[0], 100) + 1
 print(n)
 score_matrix = np.zeros((n, n))
-proteins = [prot, *df["sbjct"][:n].str.replace("-", "")]
+proteins = [prot, *df["sbjct"][:n-1].str.replace("-", "")]
 
 # %%
 for i, a in enumerate(proteins):
