@@ -184,7 +184,7 @@ prot_2 = str(best_prot_2)
 
 # %%
 def get_blast_hits(prot: str):
-    result_handle = NCBIWWW.qblast('blastp', 'swissprot', prot)
+    result_handle = NCBIWWW.qblast('blastp', 'swissprot', prot, hitlist_size=100)
     return NCBIXML.read(result_handle)
 
 # %%
@@ -221,6 +221,13 @@ df.iloc[:10, :].loc[:, ["identity", "e-value", "description"]]
 # %%
 print(*df["description"][:10], sep="\n")
 
+# %% [markdown]
+# # Predicted protein functions
+# ## Protein 1 (DSC3)
+# Predicted desmocollin (cadherin family) protein, most similar to desmocollin-3 and related isoforms (desmocollin-1/2). Likely a calcium-dependent transmembrane cell adhesion glycoprotein that functions as a core component of desmosomes, mediating intercellular adhesion through interactions with other desmosomal cadherins. Involved in maintaining tissue integrity and mechanical stability, particularly in epithelial tissues.
+# ## Protein 2 (CGN)
+# Predicted cingulin protein, a cytoplasmic component of tight junctions. Likely functions as a scaffolding protein linking transmembrane tight junction proteins to the actin cytoskeleton and regulating junction assembly and barrier function. Involved in maintaining epithelial cell polarity, cell–cell adhesion, and paracellular permeability.
+
 # %%
 matrix  = substitution_matrices.load("BLOSUM62")
 
@@ -241,7 +248,7 @@ for sbjct in df.loc[:, "sbjct"].iloc[:5].str.replace("-", ""):
 n = min(df.shape[0], 100) + 1
 print(n)
 score_matrix = np.zeros((n, n))
-proteins = [prot, *df["sbjct"][:n].str.replace("-", "")]
+proteins = [prot, *df["sbjct"][:n-1].str.replace("-", "")]
 
 # %%
 for i, a in enumerate(proteins):
@@ -269,15 +276,17 @@ for i in range(10):
         score = silhouette_score(reduced, labels)
         cluster_scores[i, j] = score
 
-plt.plot(np.mean(cluster_scores, axis=0))
+cluster_scores = np.mean(cluster_scores, axis=0)
+plt.plot(cluster_scores)
 plt.xticks(np.arange(k_list.shape[0]), k_list);
 
 # %%
-k = 4
+k = int(k_list[np.argmax(cluster_scores)])
+# kmeans is more than enough for this task, if we give it the right number of clusters
 kmeans = KMeans(n_clusters=k)
 labels = kmeans.fit_predict(reduced)
 score = silhouette_score(reduced, labels)
-k, score
+print(f"number of clusters: {k}, silhouette score: {score:.2f}")
 
 # %%
 # Task 6 - plot after dimensionality reduction & clustering
