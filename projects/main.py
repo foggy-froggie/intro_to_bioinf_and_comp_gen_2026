@@ -38,7 +38,7 @@ data = gse.pivot_samples('VALUE')
 print(f"Features: {data.shape[0]}")
 print(f"Samples: {data.shape[1]}")
 print(f"Global Mean: {data.values.mean()}")
-print(f"Global Std Dev: {data.values.std()}")
+print(f"Global Std: {data.values.std()}")
 print(f"Min: {data.values.min()}")
 print(f"Max: {data.values.max()}")
 
@@ -57,7 +57,7 @@ for gsm_id, gsm in gse.gsms.items():
         squamous_samples.append(gsm_id)
 
 # %% [markdown]
-# Looking for genes with a high mean difference and high consistentancy within the two cancer subtypes
+# Looking for genes with a high mean difference and high consistency within the two cancer subtypes.
 
 # %%
 adeno_mean = data[adeno_samples].mean(axis=1)
@@ -105,7 +105,7 @@ plt.title("Gene Expression Comparison: Adeno vs Squamous")
 plt.show()
 
 # %% [markdown]
-# In this case expression levels in the Squamos group are significantly lower compared to the Adeno group. Although the Squamous group has higher internal variation, the "boxes" of the two distributions do not overlap indicating a siginicant differnce in expression.
+# In this case expression levels in the Squamos group are significantly lower compared to the Adeno group. Although the Squamous group has higher internal variation, the "boxes" of the two distributions do not overlap indicating a siginicant difference in expression.
 # %%
 gpl = gse.gpls["GPL570"].table
 gene_1_symbol = gpl[gpl['ID'] == gene_1_id].reset_index(drop = True)["Gene Symbol"][0]
@@ -116,9 +116,9 @@ gene_2_symbol = gpl[gpl['ID'] == gene_2_id].reset_index(drop = True)["Gene Symbo
 #
 # Gene 2 Symbol: CGN
 #
-# DSC3, known as Desmocollin 3 is a critical cell-to-cell adhesion
+# DSC3, known as Desmocollin 3 found primarily in epithelial cells where they constitute the adhesive proteins of the desmosome cell-cell junction and are required for cell adhesion and desmosome formation.
 #
-# CGN, known as Cingulin is a tight-junction protein involved in regulating the epithelial barrier
+# CGN, known as Cingulin enables cadherin binding activity. Predicted to be involved in microtubule cytoskeleton organization. Predicted to act upstream of or within bicellular tight junction assembly and epithelial cell morphogenesis. Located in bicellular tight junction and plasma membrane.
 #%%
 # Task 2 - Sequence Extraction
 # Downladed coding seqences as fasta files form:
