@@ -18,10 +18,14 @@ from Bio.Align import PairwiseAligner, substitution_matrices
 
 from biotite.sequence import NucleotideSequence, ProteinSequence, CodonTable
 import biotite.sequence.io.fasta as fasta
+import biotite.sequence as seq
+import biotite.sequence.align as align
+import biotite.sequence.graphics as graphics
 
 from umap import UMAP
+# %% [markdown]
+# # Task 1 - Data Retrieval
 # %%
-# Task 1 - Data Retrieval
 gse = GEOparse.get_GEO(geo="GSE10245", destdir="./")
 
 # %% [markdown]
@@ -119,10 +123,12 @@ gene_2_symbol = gpl[gpl['ID'] == gene_2_id].reset_index(drop = True)["Gene Symbo
 # DSC3, known as Desmocollin 3 found primarily in epithelial cells where they constitute the adhesive proteins of the desmosome cell-cell junction and are required for cell adhesion and desmosome formation.
 #
 # CGN, known as Cingulin enables cadherin binding activity. Predicted to be involved in microtubule cytoskeleton organization. Predicted to act upstream of or within bicellular tight junction assembly and epithelial cell morphogenesis. Located in bicellular tight junction and plasma membrane.
-#%%
-# Task 2 - Sequence Extraction
+# %% [markdown]
+# # Task 2 - Sequence Extraction
 # Downladed coding seqences as fasta files form:
+# 
 # DSC3: https://www.ncbi.nlm.nih.gov/datasets/gene/1825/
+# 
 # CGN: https://www.ncbi.nlm.nih.gov/datasets/gene/57530/
 
 # %%
@@ -132,8 +138,9 @@ gene_2_file = fasta.FastaFile.read("./CGN.fasta")
 gene_1_seq = list(fasta.get_sequences(gene_1_file).values())[0]
 gene_2_seq = list(fasta.get_sequences(gene_2_file).values())[0]
 
+# %% [markdown]
+# # Task 3 - Translation to Protein
 # %%
-# Task 3 - Translation to Protein
 codon_table = {
     'A': ['GCT','GCC','GCA','GCG'],
     'C': ['TGT','TGC'],
@@ -182,6 +189,8 @@ protein_fasta.write("translated_proteins.fasta")
 prot_1 = str(best_prot_1)
 prot_2 = str(best_prot_2)
 
+# %% [markdown]
+# # Task 4 - top 10 BLASTp hits
 # %%
 def get_blast_hits(prot: str):
     result_handle = NCBIWWW.qblast('blastp', 'swissprot', prot, hitlist_size=100)
@@ -192,6 +201,7 @@ blast_1 = get_blast_hits(prot_1)
 
 # %%
 blast_2 = get_blast_hits(prot_2)
+# apparently there are only 47 matches
 
 # %%
 prot = prot_1
@@ -215,7 +225,6 @@ df = pd.DataFrame(
 )
 
 # %%
-# Task 4 - top 10 BLASTp hits
 df.iloc[:10, :].loc[:, ["identity", "e-value", "description"]]
 
 # %%
@@ -238,11 +247,36 @@ aligner.substitution_matrix = matrix
 aligner.open_gap_score = -10
 aligner.extend_gap_score = -0.5
 
+# %% [markdown]
+# # Task 5 - top 5 alignments
+
 # %%
-# Task 5 - top 5 alignments
 for sbjct in df.loc[:, "sbjct"].iloc[:5].str.replace("-", ""):
     alignments = aligner.align(prot, sbjct)
     print(alignments[0])
+
+# %%
+others = list(df.loc[:, "sbjct"].iloc[:3])
+matrix = np.ones((len(prot), max(map(len, others)), 3))
+
+for channel, other in enumerate(others):
+
+    for i in range(len(prot)):
+        for j in range(len(other)):
+            if prot[i] == other[j]:
+                matrix[i, j, channel] = 0
+
+plt.imshow(matrix, origin="lower")
+plt.xlabel("Original protein")
+plt.ylabel("Top 3 matches from BLASTp (as 3 RGB channels)")
+plt.title("RGB Dot Plot")
+plt.show()
+
+# %% [markdown]
+# # Alignment – comments
+# Both proteins have very good global matches, and even a ~100% match each, so we don't have to do local matching. Protein 2 has a few >90% matches, while protein 1 only has <80% matches after the best one.
+#
+# We use the default global alignment algorithm, because we have near full matches, and the standard BLOSUM62 matrix.
 
 # %%
 n = min(df.shape[0], 100) + 1
@@ -278,6 +312,9 @@ for i in range(10):
 
 cluster_scores = np.mean(cluster_scores, axis=0)
 plt.plot(cluster_scores)
+plt.title("Silhouette score vs number of clusters")
+plt.xlabel("number of clusters (k)")
+plt.ylabel("silhouette score")
 plt.xticks(np.arange(k_list.shape[0]), k_list);
 
 # %%
@@ -288,9 +325,20 @@ labels = kmeans.fit_predict(reduced)
 score = silhouette_score(reduced, labels)
 print(f"number of clusters: {k}, silhouette score: {score:.2f}")
 
+# %% [markdown]
+# # Task 6 - plot after dimensionality reduction & clustering
 # %%
-# Task 6 - plot after dimensionality reduction & clustering
 plt.scatter(reduced[:,0], reduced[:,1], c=labels, marker="x")
 plt.scatter(reduced[:1,0], reduced[:1,1], c="None", edgecolors="red", marker="o", s=200)
+plt.title("Protein pairwise similarities after dimensionality reduction & clustering")
+plt.xticks([])
+plt.yticks([])
+plt.text(reduced[0,0] + 1, reduced[0,1], "Original protein", color="red")
 
-plt.show()
+# %% [markdown]
+# PCA doesn't give satisfying results. UMAP does, and is better than t-SNE.
+# K-means is a simple clustering algorithm, but gives good results when given a good number of clusters.
+# By testing a range of cluster numbers and averaging over multiple runs,
+# we can reliably automatically find the visually optimal number of clusters.
+
+# %%
