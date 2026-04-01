@@ -221,6 +221,13 @@ df.iloc[:10, :].loc[:, ["identity", "e-value", "description"]]
 # %%
 print(*df["description"][:10], sep="\n")
 
+# %% [markdown]
+# # Predicted protein functions
+# ## Protein 1 (DSC3)
+# Predicted desmocollin (cadherin family) protein, most similar to desmocollin-3 and related isoforms (desmocollin-1/2). Likely a calcium-dependent transmembrane cell adhesion glycoprotein that functions as a core component of desmosomes, mediating intercellular adhesion through interactions with other desmosomal cadherins. Involved in maintaining tissue integrity and mechanical stability, particularly in epithelial tissues.
+# ## Protein 2 (CGN)
+# Predicted cingulin protein, a cytoplasmic component of tight junctions. Likely functions as a scaffolding protein linking transmembrane tight junction proteins to the actin cytoskeleton and regulating junction assembly and barrier function. Involved in maintaining epithelial cell polarity, cell–cell adhesion, and paracellular permeability.
+
 # %%
 matrix  = substitution_matrices.load("BLOSUM62")
 
