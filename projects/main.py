@@ -269,15 +269,17 @@ for i in range(10):
         score = silhouette_score(reduced, labels)
         cluster_scores[i, j] = score
 
-plt.plot(np.mean(cluster_scores, axis=0))
+cluster_scores = np.mean(cluster_scores, axis=0)
+plt.plot(cluster_scores)
 plt.xticks(np.arange(k_list.shape[0]), k_list);
 
 # %%
-k = 4
+k = int(k_list[np.argmax(cluster_scores)])
+# kmeans is more than enough for this task, if we give it the right number of clusters
 kmeans = KMeans(n_clusters=k)
 labels = kmeans.fit_predict(reduced)
 score = silhouette_score(reduced, labels)
-k, score
+print(f"number of clusters: {k}, silhouette score: {score:.2f}")
 
 # %%
 # Task 6 - plot after dimensionality reduction & clustering
