@@ -342,3 +342,10 @@ plt.text(reduced[0,0] + 1, reduced[0,1], "Original protein", color="red")
 # we can reliably automatically find the visually optimal number of clusters.
 
 # %%
+
+# %% [markdown]
+# ### Authors:
+# Paweł Buczyński
+# 
+# Jagna Wnuk
+# %%
