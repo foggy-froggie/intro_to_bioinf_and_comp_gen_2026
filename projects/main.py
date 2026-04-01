@@ -294,3 +294,10 @@ plt.scatter(reduced[:,0], reduced[:,1], c=labels, marker="x")
 plt.scatter(reduced[:1,0], reduced[:1,1], c="None", edgecolors="red", marker="o", s=200)
 
 plt.show()
+
+# %% [markdown]
+# ### Authors:
+# Paweł Buczyński
+# 
+# Jagna Wnuk
+# %%
