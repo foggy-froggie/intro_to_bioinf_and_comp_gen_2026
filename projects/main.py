@@ -184,7 +184,7 @@ prot_2 = str(best_prot_2)
 
 # %%
 def get_blast_hits(prot: str):
-    result_handle = NCBIWWW.qblast('blastp', 'swissprot', prot)
+    result_handle = NCBIWWW.qblast('blastp', 'swissprot', prot, hitlist_size=100)
     return NCBIXML.read(result_handle)
 
 # %%
