@@ -164,8 +164,8 @@ new_codon_table = CodonTable(
     starts=['ATG']
 )
 
-gene_1_prot_list = gene_1_seq.translate(codon_table=new_codon_table, met_start=False)
-gene_2_prot_list = gene_2_seq.translate(codon_table=new_codon_table, met_start=False)
+gene_1_prot_list = gene_1_seq.translate(codon_table=new_codon_table, met_start=False)[0]
+gene_2_prot_list = gene_2_seq.translate(codon_table=new_codon_table, met_start=False)[0]
 
 # Selecting the longest ORF for each gene
 best_prot_1 = max(gene_1_prot_list, key=len)
